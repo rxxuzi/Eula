@@ -12,6 +12,7 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.zip.ZipEntry;
@@ -43,7 +44,7 @@ public class Eula {
         if (delete) inputFile.delete();
     }
 
-    public static void encrypt(String key, List<File> files, boolean delete) throws InterruptedException, ExecutionException {
+    public static void encrypt(String key, List<File> files, boolean delete) {
         files.parallelStream().forEach(file -> {
             try {
                 encrypt(key, file, delete);
@@ -86,6 +87,14 @@ public class Eula {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    public static void encrypt(String key, String  inputFile, boolean delete) throws ExecutionException, InterruptedException {
+        encrypt(key, getFileList(new File(inputFile)), delete);
+    }
+
+    public static void decrypt(String key, String inputFile, boolean delete) throws ExecutionException, InterruptedException {
+        decrypt(key, getFileList(new File(inputFile)), delete);
     }
 
     private static void doCrypto(int cipherMode, String key, File inputFile, File outputFile) throws CryptoException {
@@ -146,6 +155,17 @@ public class Eula {
             }
             zis.closeEntry();
         }
+    }
+
+    public static List<File> getFileList(File dir) {
+        List <File> list = new ArrayList<>();
+        if(dir.isDirectory()){
+            EulaManager em = new EulaManager(dir);
+            list = em.getFileList();
+        }else{
+            list.add(dir);
+        }
+        return list;
     }
 
     private static String removeExtension(String path) {
