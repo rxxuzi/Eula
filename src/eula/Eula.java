@@ -119,7 +119,7 @@ public class Eula {
         }
     }
 
-    static Key getKeyFromPassword(String password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    private static Key getKeyFromPassword(String password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, KEY_SIZE);
         return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), ALGORITHM);
@@ -155,7 +155,7 @@ public class Eula {
         }
     }
 
-    public static List<File> getFileList(File dir) {
+    private static List<File> getFileList(File dir) {
         List <File> list = new ArrayList<>();
         if(dir.isDirectory()){
             EulaManager em = new EulaManager(dir);
