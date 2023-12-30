@@ -7,11 +7,9 @@ import java.util.List;
 public class EulaManager {
 
     private final List<File> list = new ArrayList<>();
-    private final File f;
 
     public EulaManager(File file){
-        this.f = file;
-        listFiles(f);
+        listFiles(file);
     }
 
     public EulaManager(String path){
@@ -30,9 +28,11 @@ public class EulaManager {
         }
     }
 
-    public void removeFiles(){
-        removeFiles(true);
-        removeFiles(false);
+    public void removeAllFiles(){
+        for (File file : list) {
+            file.delete();
+        }
+        list.clear();
     }
 
     public List<File> getFileList() {
