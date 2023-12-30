@@ -23,18 +23,17 @@ public class Eula {
     private static final String ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES";
     private static final int KEY_SIZE = 128;
-    private static final byte[] SALT = "EuLA by rxxuzi".getBytes();
+    private static final byte[] SALT = "Eula by rxxuzi".getBytes();
     private static final String EXTENSION = ".eula";
 
-    // 暗号化メソッドの変更
-    public static void encrypt(String key, File inputFile, File outputFile) throws CryptoException, IOException {
+    public static void encrypt(String key, File inputFile, File outputFile) throws EulaException, IOException {
         File compressedFile = new File(inputFile.getName() + EXTENSION);
         compressFile(inputFile, compressedFile);
         doCrypto(Cipher.ENCRYPT_MODE, key, compressedFile, outputFile);
         compressedFile.delete();
     }
 
-    public static void encrypt(String key, File inputFile, boolean delete) throws IOException, CryptoException {
+    public static void encrypt(String key, File inputFile, boolean delete) throws IOException, EulaException {
         String filename = inputFile.getAbsolutePath() + EXTENSION;
         File outputFile = new File(filename);
         if (outputFile.createNewFile()){
@@ -48,14 +47,13 @@ public class Eula {
         files.parallelStream().forEach(file -> {
             try {
                 encrypt(key, file, delete);
-            } catch (IOException | CryptoException e) {
+            } catch (IOException | EulaException e) {
                 throw new RuntimeException(e);
             }
         });
     }
 
-    // 複合化メソッドの変更
-    public static void decrypt(String key, File inputFile, File outputFile) throws CryptoException, IOException {
+    public static void decrypt(String key, File inputFile, File outputFile) throws EulaException, IOException {
         if (inputFile.getPath().endsWith(EXTENSION)) {
             File decompressedFile = new File(outputFile.getName() + EXTENSION);
             doCrypto(Cipher.DECRYPT_MODE, key, inputFile, decompressedFile);
@@ -64,7 +62,7 @@ public class Eula {
         }
     }
 
-    public static void decrypt(String key, File inputFile, boolean delete) throws CryptoException, IOException {
+    public static void decrypt(String key, File inputFile, boolean delete) throws EulaException, IOException {
         if (inputFile.getPath().endsWith(EXTENSION)) {
             String outputFilePath = removeExtension(inputFile.getAbsolutePath());
             File outputFile = new File(outputFilePath);
@@ -83,7 +81,7 @@ public class Eula {
                 if (file.getPath().endsWith(EXTENSION)){
                     decrypt(key, file, delete);
                 }
-            } catch (IOException | CryptoException e) {
+            } catch (IOException | EulaException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -97,7 +95,7 @@ public class Eula {
         decrypt(key, getFileList(new File(inputFile)), delete);
     }
 
-    private static void doCrypto(int cipherMode, String key, File inputFile, File outputFile) throws CryptoException {
+    private static void doCrypto(int cipherMode, String key, File inputFile, File outputFile) throws EulaException {
         try {
             Key secretKey = getKeyFromPassword(key, SALT);
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
@@ -117,11 +115,11 @@ public class Eula {
 
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException |
                  IllegalBlockSizeException | IOException | InvalidKeySpecException e) {
-            throw new CryptoException("Error encrypting/decrypting file", e);
+            throw new EulaException("Error encrypting/decrypting file", e);
         }
     }
 
-    private static Key getKeyFromPassword(String password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    static Key getKeyFromPassword(String password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, KEY_SIZE);
         return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), ALGORITHM);
@@ -174,11 +172,4 @@ public class Eula {
         }
         return path;
     }
-
-    public static class CryptoException extends Exception {
-        public CryptoException(String message, Throwable throwable) {
-            super(message, throwable);
-        }
-    }
-
 }
