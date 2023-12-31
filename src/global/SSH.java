@@ -1,26 +1,25 @@
 package global;
 
 import com.google.gson.Gson;
+import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 
-public final class SSHConfig extends Config {
+public final class SSH extends Config {
     public final String host;
     public final int port;
     public final String user;
     public final String password;
     public final String userHost;
 
-    public SSHConfig() {
+    public SSH() {
         this(SSH_PATH);
     }
 
-    public SSHConfig(String filePath) {
+    public SSH(String filePath) {
         SSHConfigData configData = loadConfig(filePath);
         this.host = configData.host;
         this.port = configData.port;
@@ -52,6 +51,21 @@ public final class SSHConfig extends Config {
         session.setConfig("StrictHostKeyChecking", "no");
         session.setPassword(this.password);
         return session;
+    }
+
+    public String output(Channel channel) throws IOException, JSchException {
+        InputStream input = channel.getInputStream();
+        channel.connect();
+
+        StringBuilder output = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+        }
+
+        return output.toString().trim();
     }
 }
 
