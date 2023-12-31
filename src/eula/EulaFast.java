@@ -20,11 +20,9 @@ import java.util.List;
 
 public final class EulaFast {
     private static final String ALGORITHM = "AES";
-    private static final String TRANSFORMATION = "AES";
     private static final int KEY_SIZE = 256;
     private static final byte[] SALT = "Fast Eula by rxxuzi".getBytes();
     private static final String EXTENSION = ".eulax";
-    private static final int THREADS = Runtime.getRuntime().availableProcessors() * 2;
     private static final int BUFFER_SIZE = 8192;
 
     // 暗号化メソッド

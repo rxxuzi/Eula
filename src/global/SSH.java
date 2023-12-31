@@ -8,7 +8,9 @@ import com.jcraft.jsch.Session;
 
 import java.io.*;
 
-public final class SSH extends Config {
+import static global.Config.*;
+
+public final class SSH{
     public final String host;
     public final int port;
     public final String user;
