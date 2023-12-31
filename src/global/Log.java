@@ -1,9 +1,6 @@
 package global;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -13,6 +10,9 @@ public class Log {
     public static final int INFO = 2;
     public static final int WARN = 3;
     public static final int ERROR = 4;
+
+    private static String filename = Config.LOG_DIR + "app-"+Config.DATE;
+    private static int currentLogFileCount = 1;
 
     private static int currentLogLevel = DEBUG;
 
@@ -35,7 +35,7 @@ public class Log {
     public static void err(Exception e) {
         err(ERROR,e);
     }
-    
+
     // ログメッセージのフォーマット
     private static String formatLogMessage(int level, String message) {
         String logLevelString = switch (level) {
@@ -51,12 +51,23 @@ public class Log {
 
     // ログファイルへの書き込み
     private static void writeLog(String logMessage) {
-        try (FileWriter writer = new FileWriter(Config.LOG_DIR + "app-"+Config.DATE+".log", true)) {
+        File logFile = new File(filename +".log");
+
+        // ログファイルがサイズ上限を超えた場合、新しいファイルを作成
+        if (logFile.length() > Config.LOG_FILE_MAX_SIZE) {
+            logFile = createNewLogFile();
+        }
+        
+        try (FileWriter writer = new FileWriter(logFile, true)) {
             writer.write(logMessage + "\n");
-            System.out.println("save at : " + Config.LOG_DIR + "app-"+Config.DATE+".log");
         } catch (IOException e) {
             System.err.println("Failed to write out: " + e.getMessage());
         }
+    }
+
+    private static File createNewLogFile() {
+        currentLogFileCount++;
+        return new File(filename + "-" + currentLogFileCount + ".log");
     }
 
     // ログレベルの設定
