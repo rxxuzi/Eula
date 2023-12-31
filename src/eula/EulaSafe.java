@@ -23,8 +23,7 @@ public final class EulaSafe {
     private static final int KEY_SIZE = 256;
     private static final byte[] SALT = "Fast Eula by rxxuzi".getBytes();
     private static final String EXTENSION = ".eulax";
-    private static final int THREADS = Runtime.getRuntime().availableProcessors() * 2;
-    private static final int BUFFER_SIZE = 8192;
+    private static final int BUFFER_SIZE = 8192 * 2;
 
     private static void encrypt(Key key, File inputFile, boolean delete) throws EulaException, IOException {
         String filename = inputFile.getAbsolutePath() + EXTENSION;
@@ -52,20 +51,23 @@ public final class EulaSafe {
 
     public static void encrypt(String password, List<File> files, boolean delete) throws EulaException {
         Key key = generateKey(password);
-        files.parallelStream().forEach(file -> {
-            try {
-                encrypt(key, file, delete);
-            } catch (IOException | EulaException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        processFiles(key, files, delete, true);
     }
 
     public static void decrypt(String password, List<File> files, boolean delete) throws EulaException {
         Key key = generateKey(password);
+        processFiles(key, files, delete, false);
+    }
+
+    private static void processFiles(Key key, List<File> files, boolean delete, boolean isEncrypt) {
         files.parallelStream().forEach(file -> {
             try {
-                if (file.getPath().endsWith(EXTENSION)){
+                if (!isEncrypt && !file.getPath().endsWith(EXTENSION)) {
+                    return;
+                }
+                if (isEncrypt) {
+                    encrypt(key, file, delete);
+                } else {
                     decrypt(key, file, delete);
                 }
             } catch (IOException | EulaException e) {
