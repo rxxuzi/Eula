@@ -7,7 +7,7 @@ import java.io.*;
 
 import static global.Config.*;
 
-public final class SSH implements AutoCloseable{
+public class SSH implements AutoCloseable{
     public final String host;
     public final int port;
     public final String user;
@@ -56,7 +56,7 @@ public final class SSH implements AutoCloseable{
     public void open() throws JSchException {
         JSch jsch = new JSch();
         session = jsch.getSession(this.user, this.host, this.port);
-        session.setConfig("StrictHostKeyChecking", "no");
+        session.setConfig("StrictHostKeyChecking", "yes");
         session.setPassword(this.password);
         session.connect();
     }
@@ -66,6 +66,13 @@ public final class SSH implements AutoCloseable{
         if (session != null && session.isConnected()) {
             session.disconnect();
         }
+    }
+
+    public String getSessionInfo() {
+        if (session == null || !session.isConnected()) {
+            return "No active SSH session.";
+        }
+        return "SSH Session Info: Host=" + session.getHost() + ", Port=" + session.getPort() + ", User=" + session.getUserName();
     }
 
     public void send(String localPath, String remotePath) throws JSchException, SftpException {
@@ -118,7 +125,6 @@ public final class SSH implements AutoCloseable{
             }
         }
     }
-
 
     public String exec(String command) throws JSchException, IOException {
         if (session == null || !session.isConnected()) {
