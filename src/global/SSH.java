@@ -1,10 +1,7 @@
 package global;
 
 import com.google.gson.Gson;
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
+import com.jcraft.jsch.*;
 
 import java.io.*;
 
@@ -17,6 +14,8 @@ public final class SSH{
     public final String password;
     public final String userHost;
 
+    private Session session;
+
     public SSH() {
         this(SSH_PATH);
     }
@@ -27,6 +26,14 @@ public final class SSH{
         this.port = configData.port;
         this.user = configData.user;
         this.password = configData.password;
+        this.userHost = this.user + "@" + this.host;
+    }
+
+    public SSH(String host, int port, String user, String password) {
+        this.host = host;
+        this.port = port;
+        this.user = user;
+        this.password = password;
         this.userHost = this.user + "@" + this.host;
     }
 
@@ -46,14 +53,66 @@ public final class SSH{
         String password;
     }
 
-    public Session openSession() throws JSchException {
+    public void open() throws JSchException {
         JSch jsch = new JSch();
-        Session session;
         session = jsch.getSession(this.user, this.host, this.port);
         session.setConfig("StrictHostKeyChecking", "no");
         session.setPassword(this.password);
-        return session;
+        session.connect();
     }
+
+    public void close() {
+        if (session != null && session.isConnected()) {
+            session.disconnect();
+        }
+    }
+
+    public void send(String from, String to) throws JSchException, SftpException {
+        Channel channel = session.openChannel("sftp");
+        channel.connect();
+        ChannelSftp sftpChannel = (ChannelSftp) channel;
+        sftpChannel.put(from , to);
+        sftpChannel.exit();
+    }
+
+    public void send(File file, String to) throws JSchException, SftpException, IOException {
+        FileInputStream fis = new FileInputStream(file);
+        Channel channel = session.openChannel("sftp");
+        channel.connect();
+        ChannelSftp sftpChannel = (ChannelSftp) channel;
+        sftpChannel.put(fis , to);
+        sftpChannel.exit();
+        fis.close();
+    }
+
+    public String exec(String command) throws JSchException, IOException {
+        if (session == null || !session.isConnected()) {
+            throw new IllegalStateException("SSH session not connected.");
+        }
+
+        String output;
+        ChannelExec channel = null;
+
+        try {
+            channel = (ChannelExec) session.openChannel("exec");
+            channel.setCommand(command);
+            channel.setInputStream(null);
+            channel.setErrStream(System.err);
+
+            try (InputStream in = channel.getInputStream()) {
+                channel.connect();
+                output = new String(in.readAllBytes());
+            }
+        } finally {
+            if (channel != null && channel.isConnected()) {
+                channel.disconnect();
+            }
+        }
+
+        return output;
+    }
+
+
 
     public String output(Channel channel) throws IOException, JSchException {
         InputStream input = channel.getInputStream();
