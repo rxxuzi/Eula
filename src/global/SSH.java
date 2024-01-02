@@ -7,7 +7,7 @@ import java.io.*;
 
 import static global.Config.*;
 
-public final class SSH{
+public final class SSH implements AutoCloseable{
     public final String host;
     public final int port;
     public final String user;
@@ -61,44 +61,76 @@ public final class SSH{
         session.connect();
     }
 
+    @Override
     public void close() {
         if (session != null && session.isConnected()) {
             session.disconnect();
         }
     }
 
-    public void send(String from, String to) throws JSchException, SftpException {
-        Channel channel = session.openChannel("sftp");
-        channel.connect();
-        ChannelSftp sftpChannel = (ChannelSftp) channel;
-        sftpChannel.put(from , to);
-        sftpChannel.exit();
+    public void send(String localPath, String remotePath) throws JSchException, SftpException {
+        if (session == null || !session.isConnected()) {
+            throw new IllegalStateException("SSH session not connected.");
+        }
+        ChannelSftp sftpChannel = null;
+        try {
+            sftpChannel = (ChannelSftp) session.openChannel("sftp");
+            sftpChannel.connect();
+            sftpChannel.put(localPath, remotePath);
+        } finally {
+            if (sftpChannel != null && sftpChannel.isConnected()) {
+                sftpChannel.exit();
+                sftpChannel.disconnect();
+            }
+        }
     }
 
-    public void send(File file, String to) throws JSchException, SftpException, IOException {
-        FileInputStream fis = new FileInputStream(file);
-        Channel channel = session.openChannel("sftp");
-        channel.connect();
-        ChannelSftp sftpChannel = (ChannelSftp) channel;
-        sftpChannel.put(fis , to);
-        sftpChannel.exit();
-        fis.close();
+    public void send(File localFile, String remotePath) throws JSchException, SftpException, IOException {
+        if (session == null || !session.isConnected()) {
+            throw new IllegalStateException("SSH session not connected.");
+        }
+        ChannelSftp sftpChannel = null;
+        try (FileInputStream fis = new FileInputStream(localFile)){
+            sftpChannel = (ChannelSftp) session.openChannel("sftp");
+            sftpChannel.connect();
+            sftpChannel.put(fis, remotePath);
+        } finally {
+            if (sftpChannel != null && sftpChannel.isConnected()) {
+                sftpChannel.exit();
+                sftpChannel.disconnect();
+            }
+        }
     }
+
+    public void get(String remotePath, String localPath) throws JSchException, SftpException, IOException {
+        if (session == null || !session.isConnected()) {
+            throw new IllegalStateException("SSH session not connected.");
+        }
+        ChannelSftp sftpChannel = null;
+        try {
+            sftpChannel = (ChannelSftp) session.openChannel("sftp");
+            sftpChannel.connect();
+            sftpChannel.get(remotePath, localPath);
+        } finally {
+            if (sftpChannel != null && sftpChannel.isConnected()) {
+                sftpChannel.exit();
+                sftpChannel.disconnect();
+            }
+        }
+    }
+
 
     public String exec(String command) throws JSchException, IOException {
         if (session == null || !session.isConnected()) {
             throw new IllegalStateException("SSH session not connected.");
         }
-
         String output;
         ChannelExec channel = null;
-
         try {
             channel = (ChannelExec) session.openChannel("exec");
             channel.setCommand(command);
             channel.setInputStream(null);
             channel.setErrStream(System.err);
-
             try (InputStream in = channel.getInputStream()) {
                 channel.connect();
                 output = new String(in.readAllBytes());
@@ -108,11 +140,8 @@ public final class SSH{
                 channel.disconnect();
             }
         }
-
         return output;
     }
-
-
 
     public String output(Channel channel) throws IOException, JSchException {
         InputStream input = channel.getInputStream();
