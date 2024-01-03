@@ -22,4 +22,13 @@ public class EulaCollections {
         }
         return path;
     }
+
+    public static String formatTime(long millis) {
+        long hours = millis / (3600 * 1000);
+        long minutes = (millis % (3600 * 1000)) / (60 * 1000);
+        long seconds = (millis % (60 * 1000)) / 1000;
+        long milliseconds = millis % 1000;
+
+        return String.format("%02d:%02d:%02d:%03d", hours, minutes, seconds, milliseconds);
+    }
 }
