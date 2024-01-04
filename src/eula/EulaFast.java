@@ -53,7 +53,7 @@ public final class EulaFast {
 
     // 複合化メソッド
     private static void decrypt(Key key, File inputFile, boolean delete) throws EulaException, IOException {
-        if (inputFile.getPath().endsWith(EXTENSION) && !EulaCollections.isIgnoredFile(inputFile)) {
+        if (inputFile.getPath().endsWith(EXTENSION)) {
             try (FileInputStream fis = new FileInputStream(inputFile);
                  LZ4BlockInputStream lz4InputStream = new LZ4BlockInputStream(fis);
                  CipherInputStream cis = new CipherInputStream(lz4InputStream, getCipher(Cipher.DECRYPT_MODE, key));
