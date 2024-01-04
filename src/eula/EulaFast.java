@@ -1,5 +1,6 @@
 package eula;
 
+import global.Config;
 import net.jpountz.lz4.LZ4BlockInputStream;
 import net.jpountz.lz4.LZ4BlockOutputStream;
 
@@ -22,35 +23,37 @@ public final class EulaFast {
     private static final String ALGORITHM = "AES";
     private static final int KEY_SIZE = 256;
     private static final byte[] SALT = "Fast Eula by rxxuzi".getBytes();
-    private static final String EXTENSION = ".eulax";
+    private static final String EXTENSION = ".eulaFx";
     private static final int BUFFER_SIZE = 8192;
 
     // 暗号化メソッド
     private static void encrypt(Key key, File inputFile, boolean delete) throws EulaException, IOException {
-        ByteArrayOutputStream compressedOutputStream = new ByteArrayOutputStream();
+        if (!EulaCollections.isIgnoredFile(inputFile)) {
+            ByteArrayOutputStream compressedOutputStream = new ByteArrayOutputStream();
 
-        try (FileInputStream fis = new FileInputStream(inputFile);
-             LZ4BlockOutputStream lz4OutputStream = new LZ4BlockOutputStream(compressedOutputStream);
-             CipherOutputStream cos = new CipherOutputStream(lz4OutputStream, getCipher(Cipher.ENCRYPT_MODE, key))) {
+            try (FileInputStream fis = new FileInputStream(inputFile);
+                 LZ4BlockOutputStream lz4OutputStream = new LZ4BlockOutputStream(compressedOutputStream);
+                 CipherOutputStream cos = new CipherOutputStream(lz4OutputStream, getCipher(Cipher.ENCRYPT_MODE, key))) {
 
-            byte[] buffer = new byte[BUFFER_SIZE];
-            int bytesRead;
-            while ((bytesRead = fis.read(buffer)) != -1) {
-                cos.write(buffer, 0, bytesRead);
+                byte[] buffer = new byte[BUFFER_SIZE];
+                int bytesRead;
+                while ((bytesRead = fis.read(buffer)) != -1) {
+                    cos.write(buffer, 0, bytesRead);
+                }
             }
-        }
 
-        try (FileOutputStream fos = new FileOutputStream(inputFile.getAbsolutePath() + EXTENSION)) {
-            fos.write(compressedOutputStream.toByteArray());
-        }
+            try (FileOutputStream fos = new FileOutputStream(inputFile.getAbsolutePath() + EXTENSION)) {
+                fos.write(compressedOutputStream.toByteArray());
+            }
 
-        if (delete) inputFile.delete();
+            if (delete) inputFile.delete();
+        }
     }
 
 
     // 複合化メソッド
     private static void decrypt(Key key, File inputFile, boolean delete) throws EulaException, IOException {
-        if (inputFile.getPath().endsWith(EXTENSION)) {
+        if (inputFile.getPath().endsWith(EXTENSION) && !EulaCollections.isIgnoredFile(inputFile)) {
             try (FileInputStream fis = new FileInputStream(inputFile);
                  LZ4BlockInputStream lz4InputStream = new LZ4BlockInputStream(fis);
                  CipherInputStream cis = new CipherInputStream(lz4InputStream, getCipher(Cipher.DECRYPT_MODE, key));

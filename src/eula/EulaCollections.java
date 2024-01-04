@@ -1,7 +1,17 @@
 package eula;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import eula.EulaManager;
+import global.Config;
+import global.Log;
+
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class EulaCollections {
@@ -30,5 +40,27 @@ public class EulaCollections {
         long milliseconds = millis % 1000;
 
         return String.format("%02d:%02d:%02d:%03d", hours, minutes, seconds, milliseconds);
+    }
+
+    public static List<String> getListFromJson(String path) {
+        Gson gson = new Gson();
+        try {
+            FileReader reader = new FileReader(path);
+            Type listType = new TypeToken<List<String>>() {
+            }.getType();
+            return gson.fromJson(reader, listType);
+        } catch (FileNotFoundException e) {
+            Log.err(e);
+        }
+        return Collections.emptyList();
+    }
+
+    public static boolean isIgnoredFile(File file) {
+        for (String ignoredFile : Config.IGNORE_EXTENSION) {
+            if (file.getName().endsWith(ignoredFile)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -22,22 +22,24 @@ public final class EulaSafe {
     private static final String TRANSFORMATION = "AES";
     private static final int KEY_SIZE = 256;
     private static final byte[] SALT = "Fast Eula by rxxuzi".getBytes();
-    private static final String EXTENSION = ".eulax";
+    private static final String EXTENSION = ".eulaSx";
     private static final int BUFFER_SIZE = 8192 * 2;
 
     private static void encrypt(Key key, File inputFile, boolean delete) throws EulaException, IOException {
-        String filename = inputFile.getAbsolutePath() + EXTENSION;
-        File outputFile = new File(filename);
-        File compressedFile = new File(inputFile.getName() + EXTENSION);
-        compressFile(inputFile, compressedFile);
-        doCrypto(Cipher.ENCRYPT_MODE, key, compressedFile, outputFile);
-        compressedFile.delete();
+        if (EulaCollections.isIgnoredFile(inputFile)) {
+            String filename = inputFile.getAbsolutePath() + EXTENSION;
+            File outputFile = new File(filename);
+            File compressedFile = new File(inputFile.getName() + EXTENSION);
+            compressFile(inputFile, compressedFile);
+            doCrypto(Cipher.ENCRYPT_MODE, key, compressedFile, outputFile);
+            compressedFile.delete();
 
-        if (delete) inputFile.delete();
+            if (delete) inputFile.delete();
+        }
     }
 
     private static void decrypt(Key key, File inputFile, boolean delete) throws EulaException, IOException {
-        if (inputFile.getPath().endsWith(EXTENSION)) {
+        if (inputFile.getPath().endsWith(EXTENSION) && !EulaCollections.isIgnoredFile(inputFile)) {
             String outputFilePath = EulaCollections.removeExtension(inputFile.getAbsolutePath(), EXTENSION);
             File outputFile = new File(outputFilePath);
             File decompressedFile = new File(outputFile.getName() + EXTENSION);

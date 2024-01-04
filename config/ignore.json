@@ -1,0 +1,11 @@
+[
+  "jar",
+  "exe",
+  "bat",
+  "sh",
+  "sys",
+  "dll",
+  "so",
+  "zip",
+  "rar"
+]
