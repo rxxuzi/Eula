@@ -1,5 +1,6 @@
 package eula;
 
+import global.Config;
 import net.jpountz.lz4.LZ4BlockInputStream;
 import net.jpountz.lz4.LZ4BlockOutputStream;
 
@@ -18,12 +19,13 @@ import java.security.spec.KeySpec;
 import java.util.List;
 
 public final class EulaSafe {
-    private static final String ALGORITHM = "AES";
-    private static final String TRANSFORMATION = "AES";
-    private static final int KEY_SIZE = 256;
-    private static final byte[] SALT = "Fast Eula by rxxuzi".getBytes();
-    private static final String EXTENSION = ".eulaSx";
-    private static final int BUFFER_SIZE = 8192 * 2;
+    private static final String ALGORITHM = Config.ALGORITHM;
+    private static final String TRANSFORMATION = Config.TRANSFORMATION;
+    private static final int KEY_SIZE = Config.KEY_SIZE;
+    private static final byte[] SALT = Config.SALT;
+    private static final String EXTENSION = Config.EXTENSION.get("EulaSafe");
+    private static final int BUFFER_SIZE = Config.BUFFER_SIZE;
+    private static final int ITERATION_COUNT = Config.ITERATION_COUNT;
 
     private static void encrypt(Key key, File inputFile, boolean delete) throws EulaException, IOException {
         if (!EulaCollections.isIgnoredFile(inputFile)) {
@@ -98,7 +100,7 @@ public final class EulaSafe {
 
     private static Key getKeyFromPassword(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(password.toCharArray(), SALT, 65536, KEY_SIZE);
+        KeySpec spec = new PBEKeySpec(password.toCharArray(), SALT, ITERATION_COUNT, KEY_SIZE);
         return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), ALGORITHM);
     }
 

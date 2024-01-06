@@ -1,0 +1,35 @@
+{
+  "save_log" : true,
+  "encrypt" :{
+    "extension" : {
+      "Eula"     : ".eula",
+      "EulaFast" : ".eulaFx",
+      "EulaSafe" : ".eulaSx"
+    },
+    "algorithm" : "AES",
+    "transformation" : "AES",
+    "key_size" : 256,
+    "buffer_size" : 8192,
+    "iteration_count" : 65536,
+    "salt" : {
+      "use_file" : false,
+      "file_path" : "./config/key/salt.txt",
+      "default_value" : "EULA"
+    },
+    "ignore" : [
+      "jar", "exe", "bat", "sh", "sys", "dll", "so", "zip", "rar"
+    ]
+  },
+  "ssh" : {
+    "host": "example.com",
+    "port": 22,
+    "user": "username",
+    "password": "password"
+  },
+  "path" : {
+    "log" : "./log/",
+    "config" : "./config/",
+    "user" : "./config/user/",
+    "key" : "./config/key/"
+  }
+}

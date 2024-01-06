@@ -11,7 +11,7 @@ public class Log {
     public static final int WARN = 3;
     public static final int ERROR = 4;
 
-    private static String filename = Config.LOG_DIR + "app-"+Config.DATE;
+    private static final String filename = Config.LOG_DIR + "app-"+Config.DATE;
     private static int currentLogFileCount = 1;
 
     private static int currentLogLevel = DEBUG;
@@ -30,6 +30,26 @@ public class Log {
         String exceptionAsString = sw.toString();
         out(level, e.getMessage() + "\nStackTrace:\n" + exceptionAsString);
         System.out.println(e.getMessage() + "\nStackTrace:\n" + exceptionAsString);
+    }
+
+    public static void info(String message) {
+        out(INFO, message);
+    }
+
+    public static void warn(String message) {
+        out(WARN, message);
+    }
+
+    public static void err(String message) {
+        out(ERROR, message);
+    }
+
+    public static void debug(String message) {
+        out(DEBUG, message);
+    }
+
+    public static void debug(Exception e) {
+        err(DEBUG,e);
     }
 
     public static void err(Exception e) {
@@ -57,11 +77,15 @@ public class Log {
         if (logFile.length() > Config.LOG_FILE_MAX_SIZE) {
             logFile = createNewLogFile();
         }
-        
-        try (FileWriter writer = new FileWriter(logFile, true)) {
-            writer.write(logMessage + "\n");
-        } catch (IOException e) {
-            System.err.println("Failed to write out: " + e.getMessage());
+
+        if(Config.SAVE){
+            try (FileWriter writer = new FileWriter(logFile, true)) {
+                writer.write(logMessage + "\n");
+            } catch (IOException e) {
+                System.err.println("Failed to write out: " + e.getMessage());
+            }
+        }else{
+            System.out.println(logMessage + "\n");
         }
     }
 

@@ -1,17 +1,12 @@
 package eula;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import eula.EulaManager;
 import global.Config;
 import global.Log;
 
+import java.awt.*;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.lang.reflect.Type;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class EulaCollections {
@@ -42,25 +37,36 @@ public class EulaCollections {
         return String.format("%02d:%02d:%02d:%03d", hours, minutes, seconds, milliseconds);
     }
 
-    public static List<String> getListFromJson(String path) {
-        Gson gson = new Gson();
-        try {
-            FileReader reader = new FileReader(path);
-            Type listType = new TypeToken<List<String>>() {
-            }.getType();
-            return gson.fromJson(reader, listType);
-        } catch (FileNotFoundException e) {
-            Log.err(e);
-        }
-        return Collections.emptyList();
-    }
-
     public static boolean isIgnoredFile(File file) {
         for (String ignoredFile : Config.IGNORE_EXTENSION) {
             if (file.getName().endsWith(ignoredFile)) {
                 return true;
             }
         }
-        return false;
+        String path = file.getAbsolutePath();
+        return path.endsWith(Config.CONFIG_FILE);
+    }
+
+    public static void openDir(String dir){
+        try {
+            // ディレクトリのパスを指定
+            File directory = new File(dir);
+
+            // デスクトップサポートがあるかチェック
+            if (!Desktop.isDesktopSupported()) {
+                Log.warn("Desktop is not supported");
+                return;
+            }
+
+            Desktop desktop = Desktop.getDesktop();
+            if (directory.exists()) {
+                // ディレクトリを開く
+                desktop.open(directory);
+            } else {
+                Log.warn("Directory does not exist");
+            }
+        } catch (IOException e) {
+            Log.err(e);
+        }
     }
 }
