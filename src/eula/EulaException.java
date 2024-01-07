@@ -7,4 +7,7 @@ public class EulaException extends Exception{
     public EulaException(String message) {
         super(message);
     }
+    public EulaException(Throwable throwable){
+        super(throwable);
+    }
 }

@@ -1,11 +1,10 @@
 package global;
 
-import com.google.gson.Gson;
 import com.jcraft.jsch.*;
 
 import java.io.*;
 
-import static global.Config.*;
+import static global.Config.fast;
 
 public class SSH implements AutoCloseable{
     public final String host;
@@ -17,16 +16,7 @@ public class SSH implements AutoCloseable{
     private Session session;
 
     public SSH() {
-        this(SSH_PATH);
-    }
-
-    public SSH(String filePath) {
-        SSHConfigData configData = loadConfig(filePath);
-        this.host = configData.host;
-        this.port = configData.port;
-        this.user = configData.user;
-        this.password = configData.password;
-        this.userHost = this.user + "@" + this.host;
+        this(fast.ssh.host, fast.ssh.port, fast.ssh.user, fast.ssh.password);
     }
 
     public SSH(String host, int port, String user, String password) {
@@ -37,26 +27,10 @@ public class SSH implements AutoCloseable{
         this.userHost = this.user + "@" + this.host;
     }
 
-    private SSHConfigData loadConfig(String filePath) {
-        Gson gson = new Gson();
-        try (Reader reader = new FileReader(filePath)) {
-            return gson.fromJson(reader, SSHConfigData.class);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static class SSHConfigData {
-        String host;
-        int port;
-        String user;
-        String password;
-    }
-
     public void open() throws JSchException {
         JSch jsch = new JSch();
         session = jsch.getSession(this.user, this.host, this.port);
-        session.setConfig("StrictHostKeyChecking", "yes");
+        session.setConfig("StrictHostKeyChecking", "no");
         session.setPassword(this.password);
         session.connect();
     }
